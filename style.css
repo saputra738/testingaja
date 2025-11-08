@@ -1,0 +1,6 @@
+/* Custom styles on top of Tailwind */
+:root{--accent:#d6a84a}
+html,body{height:100%}
+.slide-wrap{width:100%;max-width:920px;margin:40px auto}
+.auth-card{backdrop-filter: blur(6px);}
+.badge-pending{background:linear-gradient(90deg,#f59e0b,#f97316);-webkit-background-clip:text;background-clip:text;color:transparent}
