@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dashboard — Investasi</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../public/style.css">
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+import { getFirestore, doc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+const firebaseConfig = {"apiKey": "AIzaSyDAkDFS1Mp8zAJvXq8P8SkzJnmbZRyHKaY", "authDomain": "testingsaja-bb474.firebaseapp.com", "projectId": "testingsaja-bb474", "storageBucket": "testingsaja-bb474.firebasestorage.app", "messagingSenderId": "1068578641763", "appId": "1:1068578641763:web:3832c9485c5092df3b6556", "measurementId": "G-PF9N37F8V9"};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const user = localStorage.getItem('username');
+if(!user) location.href = 'index.html';
+
+let userDocRef = doc(db,'users',user);
+
+window.onload = ()=>{ document.getElementById('uname').innerText = user; };
+
+onSnapshot(userDocRef,(snap)=>{ 
+  if(snap.exists()) document.getElementById('saldo').innerText = 'Rp ' + (snap.data().saldo||0);
+});
+
+window.topup = async ()=>{ 
+  const nominal = prompt('Masukkan nominal isi ulang:');
+  if(!nominal) return;
+  await addDoc(collection(db,'topup'),{ user, nominal: Number(nominal), status:'pending', createdAt: Date.now() });
+  alert('Request isi ulang terkirim. Menunggu persetujuan admin.');
+};
+
+window.withdraw = async ()=>{ 
+  const nominal = prompt('Masukkan nominal penarikan:');
+  if(!nominal) return;
+  await addDoc(collection(db,'withdraw'),{ user, nominal: Number(nominal), status:'pending', createdAt: Date.now() });
+  alert('Request penarikan terkirim. Menunggu persetujuan admin.');
+};
+
+window.logout = ()=>{ localStorage.removeItem('username'); localStorage.removeItem('role'); location.href='index.html'; };
+</script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+  <div class="max-w-3xl mx-auto p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Dashboard</h1>
+      <div class="space-x-2">
+        <button onclick="location.href='admin.html'" class="text-sm text-gray-400 underline">Admin</button>
+        <button onclick="logout()" class="text-sm text-gray-400 underline">Logout</button>
+      </div>
+    </div>
+
+    <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 shadow-lg">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-400">Hai, <span id="uname"></span></p>
+          <h2 class="text-3xl font-bold mt-1" id="saldo">Rp 0</h2>
+        </div>
+        <div class="text-right">
+          <p class="text-sm text-gray-400">Saldo tersedia</p>
+          <div class="mt-2 inline-block px-3 py-2 rounded-md" style="background:var(--accent);color:#000">Live</div>
+        </div>
+      </div>
+
+      <div class="mt-6 grid grid-cols-2 gap-4">
+        <button onclick="topup()" class="py-3 rounded-md font-semibold bg-green-500">Isi Ulang</button>
+        <button onclick="withdraw()" class="py-3 rounded-md font-semibold bg-red-500">Tarik Dana</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Login • Register — Investasi</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../public/style.css">
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+const firebaseConfig = {"apiKey": "AIzaSyDAkDFS1Mp8zAJvXq8P8SkzJnmbZRyHKaY", "authDomain": "testingsaja-bb474.firebaseapp.com", "projectId": "testingsaja-bb474", "storageBucket": "testingsaja-bb474.firebasestorage.app", "messagingSenderId": "1068578641763", "appId": "1:1068578641763:web:3832c9485c5092df3b6556", "measurementId": "G-PF9N37F8V9"};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.showRegister = ()=> document.getElementById('slide').style.transform='translateX(-50%)';
+window.showLogin = ()=> document.getElementById('slide').style.transform='translateX(0%)';
+
+window.login = async ()=>{
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value.trim();
+  if(!u||!p) return alert('Isi semua kolom!');
+  if(u==='admin'&&p==='admin123'){ localStorage.setItem('role','admin'); return location.href='admin.html'; }
+  const dref = doc(db,'users',u);
+  const snap = await getDoc(dref);
+  if(snap.exists() && snap.data().password===p){
+    localStorage.setItem('username', u);
+    localStorage.setItem('role','user');
+    location.href='dashboard.html';
+  }else alert('Akun tidak ditemukan atau password salah');
+};
+
+window.register = async ()=>{
+  const u = document.getElementById('regUser').value.trim();
+  const p = document.getElementById('regPass').value.trim();
+  if(!u||!p) return alert('Isi semua kolom!');
+  const dref = doc(db,'users',u);
+  const snap = await getDoc(dref);
+  if(snap.exists()) return alert('Username sudah terpakai');
+  await setDoc(dref,{ password: p, saldo: 0 });
+  alert('Registrasi berhasil. Silakan login.');
+  showLogin();
+};
+</script>
+<style>
+/* slide container styles */
+#slide{transition:transform .5s ease}
+</style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen antialiased">
+  <div class="slide-wrap px-4">
+    <div class="bg-gradient-to-br from-gray-800 via-gray-900 to-black rounded-2xl p-6 shadow-xl auth-card">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Investasi Mini</h1>
+        <div class="text-sm text-gray-400">Real-time • Dark</div>
+      </div>
+
+      <div class="overflow-hidden rounded-lg">
+        <div id="slide" class="flex w-[200%]">
+          <!-- LOGIN -->
+          <div class="w-1/2 px-6">
+            <h2 class="text-xl font-semibold mb-4">Masuk</h2>
+            <input id="loginUser" class="w-full p-3 rounded-md mb-3 bg-gray-800 border border-gray-700" placeholder="Username">
+            <input id="loginPass" type="password" class="w-full p-3 rounded-md mb-4 bg-gray-800 border border-gray-700" placeholder="Password">
+            <button onclick="login()" class="w-full py-3 rounded-md font-semibold" style="background:var(--accent);color:#000">Masuk</button>
+            <p class="mt-4 text-sm text-gray-400">Belum punya akun? <button onclick="showRegister()" class="text-yellow-400 underline">Daftar</button></p>
+          </div>
+
+          <!-- REGISTER -->
+          <div class="w-1/2 px-6 bg-gradient-to-r from-gray-900/40 to-black/40">
+            <h2 class="text-xl font-semibold mb-4">Daftar</h2>
+            <input id="regUser" class="w-full p-3 rounded-md mb-3 bg-gray-800 border border-gray-700" placeholder="Buat username">
+            <input id="regPass" type="password" class="w-full p-3 rounded-md mb-4 bg-gray-800 border border-gray-700" placeholder="Buat password">
+            <button onclick="register()" class="w-full py-3 rounded-md font-semibold" style="background:transparent;border:1px solid rgba(214,168,74,0.9);color:var(--accent)">Daftar</button>
+            <p class="mt-4 text-sm text-gray-400">Sudah punya akun? <button onclick="showLogin()" class="text-yellow-400 underline">Login</button></p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Admin Panel — Investasi</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../public/style.css">
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+import { getFirestore, collection, onSnapshot, updateDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+const firebaseConfig = {"apiKey": "AIzaSyDAkDFS1Mp8zAJvXq8P8SkzJnmbZRyHKaY", "authDomain": "testingsaja-bb474.firebaseapp.com", "projectId": "testingsaja-bb474", "storageBucket": "testingsaja-bb474.firebasestorage.app", "messagingSenderId": "1068578641763", "appId": "1:1068578641763:web:3832c9485c5092df3b6556", "measurementId": "G-PF9N37F8V9"};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const topupListEl = () => document.getElementById('topupList');
+const wdListEl = () => document.getElementById('wdList');
+
+onSnapshot(collection(db,'topup'), (snap)=>{
+  topupListEl().innerHTML = '';
+  snap.forEach(d=>{
+    const data = d.data();
+    if(data.status==='pending'){ 
+      const el = document.createElement('div');
+      el.className = 'p-4 mb-3 rounded bg-gray-800';
+      el.innerHTML = `<div class="flex justify-between items-center"><div><b>${data.user}</b> ingin isi <span class="text-yellow-300">Rp${data.nominal}</span></div><div><button onclick="approveTopup('${d.id}','${data.user}',${data.nominal})" class="px-3 py-1 rounded bg-green-500">Setujui</button></div></div>`;
+      topupListEl().appendChild(el);
+    }
+  });
+});
+
+onSnapshot(collection(db,'withdraw'), (snap)=>{
+  wdListEl().innerHTML = '';
+  snap.forEach(d=>{
+    const data = d.data();
+    if(data.status==='pending'){ 
+      const el = document.createElement('div');
+      el.className = 'p-4 mb-3 rounded bg-gray-800';
+      el.innerHTML = `<div class="flex justify-between items-center"><div><b>${data.user}</b> ingin tarik <span class="text-red-300">Rp${data.nominal}</span></div><div><button onclick="approveWD('${d.id}','${data.user}',${data.nominal})" class="px-3 py-1 rounded bg-green-500">Setujui</button></div></div>`;
+      wdListEl().appendChild(el);
+    }
+  });
+});
+
+window.approveTopup = async (id,user,nom)=>{
+  const uref = doc(db,'users',user);
+  const snap = await getDoc(uref);
+  const newSaldo = (snap.data()?.saldo||0) + Number(nom);
+  await updateDoc(uref,{ saldo: newSaldo });
+  await updateDoc(doc(db,'topup',id),{ status:'approved' });
+  alert('Topup disetujui');
+};
+
+window.approveWD = async (id,user,nom)=>{
+  const uref = doc(db,'users',user);
+  const snap = await getDoc(uref);
+  const newSaldo = (snap.data()?.saldo||0) - Number(nom);
+  await updateDoc(uref,{ saldo: newSaldo });
+  await updateDoc(doc(db,'withdraw',id),{ status:'approved' });
+  alert('Penarikan disetujui');
+};
+</script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+  <div class="max-w-4xl mx-auto p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Admin Panel</h1>
+      <div>
+        <button onclick="location.href='dashboard.html'" class="text-sm text-gray-400 underline mr-3">User</button>
+        <button onclick="location.href='index.html'" class="text-sm text-gray-400 underline">Logout</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-6">
+      <div>
+        <h2 class="text-lg font-semibold mb-3">Pengajuan Isi Ulang</h2>
+        <div id="topupList"></div>
+      </div>
+      <div>
+        <h2 class="text-lg font-semibold mb-3">Pengajuan Penarikan</h2>
+        <div id="wdList"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
